@@ -30,8 +30,19 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files — keep examples, never commit secrets
 .env*
+!.env.local.example
+!.env*.example
+
+# leftover nested prototype (safe to delete locally)
+/finn-legacy/
+
+# python
+.venv/
+scripts/.cache/
+__pycache__/
+*.pyc
 
 # vercel
 .vercel
