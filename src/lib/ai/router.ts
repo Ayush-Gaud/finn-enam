@@ -7,8 +7,8 @@ import { PROMPT_VERSION, prompts, type PromptTask } from "@/lib/ai/prompts";
 
 /** Swappable model ids — change here only. */
 export const MODELS = {
-  flash: "gemini-2.0-flash",
-  pro: "gemini-2.0-pro",
+  flash: "gemini-3.8-flash",
+  pro: "gemini-3.8-flash",
   embed: "text-embedding-004",
 } as const;
 
