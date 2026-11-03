@@ -40,5 +40,6 @@ UI is a glass-over-mesh mobile shell (Geist Sans/Mono, dusk palette) — product
 
 - Live app: https://finn-enam-omega.vercel.app  
 - GitHub: https://github.com/Ayush-Gaud/finn-enam  
-- AI build history: Cursor conversation export / share link (attached or linked in the submission email)  
+- AI build history: https://github.com/Ayush-Gaud/finn-enam/blob/master/BUILD_HISTORY.md  
+  (Optional Cursor Share link `https://cursor.com/s/...` if your plan supports Shared Transcripts)  
 - Screens (phone viewport): `docs/screens/` in the repo  
