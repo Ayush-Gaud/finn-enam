@@ -86,7 +86,8 @@ curl -X POST http://localhost:3000/api/seed-demo
 ## Submission
 
 Email **assessment@enam.com** · subject exactly **`ENAM - IIT screening - 2027`**  
-Include live link, GitHub, AI build history, and [`COVERING_NOTE.md`](COVERING_NOTE.md).
+Include live link, GitHub, AI build history, and [`COVERING_NOTE.md`](COVERING_NOTE.md).  
+Ready-to-send draft: [`SUBMISSION_EMAIL.md`](SUBMISSION_EMAIL.md). Phone screenshots: `docs/screens/`.
 
 ## Secrets
 

@@ -1,8 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { SkeletonStack } from "@/components/ui/Skeleton";
+import { relativeTime } from "@/lib/format";
 
 type Alert = {
   id: string;
@@ -14,6 +19,15 @@ type Alert = {
   headline: string;
   reason: string;
 };
+
+function severityDot(kind: string, headline: string, reason: string) {
+  const blob = `${kind} ${headline} ${reason}`.toLowerCase();
+  const neg = /litigation|pledge|downgrade|drop|plunge|fall|-\d|form 483|missed/.test(blob);
+  const pos = /volume|order win|surge|spike|beat|dividend|\+\d|fund.raise|capex/.test(blob);
+  if (neg) return "bg-[var(--down)] shadow-[0_0_8px_rgba(244,63,94,0.45)]";
+  if (pos) return "bg-[var(--up)] shadow-[0_0_8px_rgba(52,211,153,0.45)]";
+  return "bg-[var(--neutral)] shadow-[0_0_8px_rgba(251,191,36,0.35)]";
+}
 
 export default function AlertsPage() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -43,55 +57,61 @@ export default function AlertsPage() {
     <div className="space-y-4">
       <div className="flex items-end justify-between gap-3">
         <div>
-          <h1 className="font-[family-name:var(--font-display)] text-3xl tracking-tight">Alerts</h1>
-          <p className="mt-1 text-sm text-white/50">Unusual moves + material filings.</p>
+          <h2 className="heading text-2xl">Alerts</h2>
+          <p className="mt-1 text-sm text-[var(--secondary)]">Interrupt only when it matters.</p>
         </div>
-        <Button variant="outline" onClick={load}>
-          Refresh
+        <Button variant="outline" onClick={load} className="!px-3">
+          <RefreshCw className="relative z-[2] h-4 w-4" strokeWidth={1.75} />
         </Button>
       </div>
 
       {thresholds && (
-        <p className="text-xs text-white/40">
-          vol ≥ {String(thresholds.volMultiple)}× · price ±{String(thresholds.pricePct)}% · window{" "}
-          {String(thresholds.windowHours)}h
+        <p className="tabular text-xs text-[var(--muted)]">
+          vol ≥ {String(thresholds.volMultiple)}× · ±{String(thresholds.pricePct)}% · {String(thresholds.windowHours)}h
         </p>
       )}
 
-      {loading && (
-        <div className="space-y-3">
-          {[1, 2].map((i) => (
-            <div key={i} className="h-24 animate-pulse rounded-xl bg-white/5" />
-          ))}
-        </div>
-      )}
+      {loading && <SkeletonStack rows={3} />}
       {error && (
         <Card>
-          <p className="text-sm text-rose-300">{error}</p>
+          <p className="relative z-[2] text-sm text-[var(--down)]">{error}</p>
         </Card>
       )}
 
-      {!loading && alerts.length === 0 && (
+      {!loading && alerts.length === 0 && !error && (
         <Card>
-          <p className="text-sm text-white/60">No alerts with current thresholds.</p>
+          <p className="relative z-[2] text-sm text-[var(--secondary)]">No breaches at current thresholds.</p>
         </Card>
       )}
 
-      <div className="space-y-3">
-        {alerts.map((a) => (
-          <article
+      <div className="glass overflow-hidden !p-0">
+        {alerts.map((a, i) => (
+          <motion.div
             key={a.id}
-            className={`rounded-xl border p-3.5 ${
-              a.severity === "high" ? "border-rose-400/30 bg-rose-400/10" : "border-white/10 bg-white/[0.03]"
-            }`}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.18, delay: Math.min(i * 0.03, 0.2), ease: "easeOut" }}
+            className="relative z-[2] border-b border-[var(--hairline)] last:border-0"
           >
-            <p className="text-[10px] uppercase tracking-[0.14em] text-white/45">
-              {a.kind.replaceAll("_", " ")} · {a.asOf}
-            </p>
-            <h3 className="mt-1 font-[family-name:var(--font-display)] text-xl tracking-tight">{a.headline}</h3>
-            <p className="mt-1 text-sm leading-relaxed text-white/70">{a.reason}</p>
-            <p className="mt-2 text-xs text-white/40">{a.companyName}</p>
-          </article>
+            <Link
+              href={`/research?ticker=${a.ticker}`}
+              className="flex min-h-11 gap-3 px-4 py-3.5 transition active:bg-[var(--glass-elevated)]"
+            >
+              <span className={`mt-2 h-2 w-2 shrink-0 rounded-full ${severityDot(a.kind, a.headline, a.reason)}`} />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="tabular text-xs font-semibold text-[var(--text)]">{a.ticker}</span>
+                  <span className="text-[11px] text-[var(--muted)]">
+                    {relativeTime(a.kind === "material_filing" ? a.asOf : `${a.asOf}T16:00:00+05:30`)}
+                  </span>
+                </div>
+                <p className="heading mt-1 text-[0.95rem] leading-snug">{a.headline}</p>
+                <p className="mt-1 text-xs leading-relaxed text-[var(--secondary)]">
+                  {a.reason.replaceAll("_", " ")}
+                </p>
+              </div>
+            </Link>
+          </motion.div>
         ))}
       </div>
     </div>

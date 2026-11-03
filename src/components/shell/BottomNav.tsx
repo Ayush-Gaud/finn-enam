@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Bell, BookOpen, Newspaper, Settings } from "lucide-react";
 
 const TABS = [
-  { href: "/feed", label: "Feed" },
-  { href: "/alerts", label: "Alerts" },
-  { href: "/research", label: "Research" },
-  { href: "/settings", label: "Settings" },
+  { href: "/feed", label: "Feed", Icon: Newspaper },
+  { href: "/alerts", label: "Alerts", Icon: Bell },
+  { href: "/research", label: "Research", Icon: BookOpen },
+  { href: "/settings", label: "Settings", Icon: Settings },
 ] as const;
 
 export function BottomNav() {
@@ -15,21 +16,28 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-30 border-t border-white/10 bg-[var(--ink)]/95 backdrop-blur"
-      style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
+      className="glass glass-bar fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md !rounded-t-2xl !rounded-b-none"
+      style={{ paddingBottom: "max(0.35rem, env(safe-area-inset-bottom))" }}
     >
-      <div className="mx-auto grid max-w-md grid-cols-4 gap-1 px-2 pt-2">
-        {TABS.map((tab) => {
-          const active = pathname === tab.href || pathname.startsWith(`${tab.href}/`);
+      <div className="relative z-[2] grid grid-cols-4 px-1.5 pt-1.5">
+        {TABS.map(({ href, label, Icon }) => {
+          const active = pathname === href || pathname.startsWith(`${href}/`);
           return (
             <Link
-              key={tab.href}
-              href={tab.href}
-              className={`rounded-lg py-2.5 text-center text-xs font-medium transition ${
-                active ? "bg-[var(--signal)]/15 text-[var(--signal)]" : "text-white/45 hover:text-white/75"
+              key={href}
+              href={href}
+              className={`flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-xl text-[11px] font-medium transition duration-200 ease-out ${
+                active ? "text-[var(--text)]" : "text-[var(--muted)] hover:text-[var(--secondary)]"
               }`}
             >
-              {tab.label}
+              <span
+                className={`flex h-7 w-7 items-center justify-center rounded-lg transition duration-200 ${
+                  active ? "accent-gradient text-[#0A0A0F] shadow-[0_4px_12px_rgba(245,166,35,0.35)]" : ""
+                }`}
+              >
+                <Icon strokeWidth={1.75} className="h-[16px] w-[16px]" />
+              </span>
+              <span className={active ? "accent-text font-semibold" : ""}>{label}</span>
             </Link>
           );
         })}

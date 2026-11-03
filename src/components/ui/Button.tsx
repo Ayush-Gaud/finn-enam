@@ -2,20 +2,23 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   children: ReactNode;
-  variant?: "primary" | "ghost" | "outline";
+  variant?: "accent" | "soft" | "ghost" | "outline";
 };
 
-const styles: Record<NonNullable<Props["variant"]>, string> = {
-  primary: "bg-[var(--signal)] text-[var(--ink)] hover:opacity-90",
-  ghost: "bg-transparent text-white/70 hover:bg-white/8 hover:text-white",
-  outline: "border border-white/20 bg-transparent text-white/80 hover:border-white/40",
+const variants: Record<NonNullable<Props["variant"]>, string> = {
+  accent:
+    "accent-gradient text-[#0A0A0F] shadow-[0_6px_20px_rgba(245,166,35,0.28)] hover:brightness-110 active:scale-[0.98]",
+  soft: "bg-[var(--accent-soft)] text-[var(--accent)] hover:bg-[rgba(245,166,35,0.22)]",
+  ghost: "bg-transparent text-[var(--secondary)] hover:bg-[var(--glass-elevated)] hover:text-[var(--text)]",
+  outline:
+    "glass glass-elevated text-[var(--text)] hover:bg-[var(--glass-strong)] active:scale-[0.98]",
 };
 
-export function Button({ children, variant = "primary", className = "", ...rest }: Props) {
+export function Button({ children, variant = "accent", className = "", ...rest }: Props) {
   return (
     <button
       type="button"
-      className={`inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-medium transition disabled:opacity-50 ${styles[variant]} ${className}`}
+      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition duration-200 ease-out disabled:opacity-45 ${variants[variant]} ${className}`}
       {...rest}
     >
       {children}

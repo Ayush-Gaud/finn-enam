@@ -1,24 +1,43 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { AnimatePresence, motion } from "framer-motion";
+import { Search } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { Segmented } from "@/components/ui/Segmented";
+import { Skeleton, SkeletonStack } from "@/components/ui/Skeleton";
 
 type Module = "snapshot" | "bull_bear" | "promised_delivered";
 
 const MODULES: { id: Module; label: string }[] = [
   { id: "snapshot", label: "Snapshot" },
-  { id: "bull_bear", label: "Bull vs Bear" },
-  { id: "promised_delivered", label: "Promised vs Delivered" },
+  { id: "bull_bear", label: "Bull / Bear" },
+  { id: "promised_delivered", label: "Promised" },
 ];
 
-export default function ResearchPage() {
+const verdictStyle: Record<string, string> = {
+  met: "bg-[var(--up-soft)] text-[var(--up)]",
+  beat: "bg-[var(--up-soft)] text-[var(--up)]",
+  missed: "bg-[var(--down-soft)] text-[var(--down)]",
+  mixed: "bg-[var(--neutral-soft)] text-[var(--neutral)]",
+  unclear: "bg-[var(--glass-elevated)] text-[var(--muted)]",
+};
+
+function ResearchInner() {
+  const params = useSearchParams();
   const [ticker, setTicker] = useState("INFY");
   const [module, setModule] = useState<Module>("promised_delivered");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<Record<string, unknown> | null>(null);
   const [openCite, setOpenCite] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    const t = params.get("ticker");
+    if (t) setTicker(t.toUpperCase());
+  }, [params]);
 
   async function run() {
     setLoading(true);
@@ -46,7 +65,13 @@ export default function ResearchPage() {
       verdict: string;
       citationIds: string[];
     }>;
-    citations: Array<{ id: string; documentTitle: string; period: string; page?: number | null; quote: string }>;
+    citations: Array<{
+      id: string;
+      documentTitle: string;
+      period: string;
+      page?: number | null;
+      quote: string;
+    }>;
   };
 
   const citeMap = Object.fromEntries((result?.citations ?? []).map((c) => [c.id, c]));
@@ -54,111 +79,156 @@ export default function ResearchPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="font-[family-name:var(--font-display)] text-3xl tracking-tight">Research</h1>
-        <p className="mt-1 text-sm text-white/50">Primary sources only — AR + concalls.</p>
+        <h2 className="heading text-2xl">Research</h2>
+        <p className="mt-1 text-sm text-[var(--secondary)]">Primary sources only. Every claim cited.</p>
       </div>
 
-      <input
-        value={ticker}
-        onChange={(e) => setTicker(e.target.value.toUpperCase())}
-        placeholder="NSE ticker e.g. POLYCAB"
-        className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2.5 text-sm outline-none focus:border-[var(--signal)]/50"
-      />
-
-      <div className="flex gap-2 overflow-x-auto pb-1">
-        {MODULES.map((m) => (
-          <button
-            key={m.id}
-            type="button"
-            onClick={() => setModule(m.id)}
-            className={`shrink-0 rounded-full px-3 py-1.5 text-xs ${
-              module === m.id ? "bg-white text-[var(--ink)]" : "bg-white/8 text-white/60"
-            }`}
-          >
-            {m.label}
-          </button>
-        ))}
+      <div className="relative">
+        <Search
+          className="pointer-events-none absolute left-3.5 top-1/2 z-[3] h-4 w-4 -translate-y-1/2 text-[var(--muted)]"
+          strokeWidth={1.75}
+        />
+        <input
+          value={ticker}
+          onChange={(e) => setTicker(e.target.value.toUpperCase())}
+          placeholder="Search any NSE ticker"
+          className="glass relative z-[2] min-h-11 w-full py-2.5 pr-3 pl-11 text-sm outline-none placeholder:text-[var(--muted)]"
+        />
       </div>
+
+      <Segmented options={MODULES} value={module} onChange={setModule} />
 
       <Button className="w-full" onClick={() => void run()} disabled={loading || !ticker}>
         {loading ? "Analysing…" : "Run research"}
       </Button>
 
-      {loading && <div className="h-40 animate-pulse rounded-xl bg-white/5" />}
+      {loading && (
+        <div className="space-y-3">
+          <Skeleton className="h-8 w-3/4" />
+          <Skeleton className="h-36 w-full" />
+          <Skeleton className="h-24 w-full" />
+        </div>
+      )}
+
       {error && (
         <Card>
-          <p className="text-sm text-rose-300">{error}</p>
+          <p className="relative z-[2] text-sm text-[var(--down)]">{error}</p>
         </Card>
       )}
 
       {result && (
-        <div className="space-y-3">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.22, ease: "easeOut" }}
+          className="space-y-4"
+        >
           <div className="flex items-start justify-between gap-2">
-            <h2 className="font-[family-name:var(--font-display)] text-xl leading-snug">{result.headline}</h2>
-            <span className="shrink-0 rounded-sm bg-white/10 px-1.5 py-0.5 text-[10px] text-white/45">
+            <h3 className="heading text-xl leading-snug">{result.headline}</h3>
+            <span className="shrink-0 rounded-full bg-[var(--glass-elevated)] px-2 py-1 text-[10px] font-medium tracking-[0.06em] text-[var(--muted)] uppercase shadow-[inset_0_0_0_1px_var(--hairline)]">
               {data?.cached ? "cached" : String(data?.model ?? "")}
             </span>
           </div>
 
           {result.table && (
-            <Card className="space-y-3 !p-3">
+            <div className="glass overflow-hidden !p-0">
+              <div className="relative z-[2] bg-[var(--glass-elevated)] px-4 py-2.5">
+                <p className="label accent-text !bg-clip-text">Promised → delivered → verdict</p>
+              </div>
               {result.table.map((row) => (
-                <div key={row.quarter} className="border-b border-white/10 pb-3 last:border-0 last:pb-0">
+                <div
+                  key={row.quarter}
+                  className="relative z-[2] border-b border-[var(--hairline)] px-4 py-3.5 last:border-0"
+                >
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-xs font-medium text-[var(--signal)]">{row.quarter}</p>
-                    <span className="rounded-sm bg-white/10 px-1.5 py-0.5 text-[10px] uppercase">{row.verdict}</span>
+                    <p className="heading text-[1rem]">{row.quarter}</p>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-[0.06em] uppercase ${
+                        verdictStyle[row.verdict] ?? verdictStyle.unclear
+                      }`}
+                    >
+                      {row.verdict}
+                    </span>
                   </div>
-                  <p className="mt-1 text-xs text-white/55">
-                    <span className="text-white/35">Promised:</span> {row.promised}
+                  <p className="mt-2 text-xs text-[var(--muted)]">
+                    <span className="label mr-2 inline">Promised</span>
+                    {row.promised}
                   </p>
-                  <p className="mt-1 text-xs text-white/70">
-                    <span className="text-white/35">Delivered:</span> {row.delivered}
+                  <p className="mt-1.5 text-xs text-[var(--secondary)]">
+                    <span className="label mr-2 inline">Delivered</span>
+                    <span className="tabular">{row.delivered}</span>
                   </p>
                 </div>
               ))}
-            </Card>
+            </div>
           )}
 
           {(result.sections ?? []).map((s) => (
-            <section key={s.title} className="rounded-xl border border-white/10 bg-white/[0.03] p-3.5">
-              <h3 className="text-xs uppercase tracking-[0.14em] text-[var(--signal)]">{s.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-white/75">{s.body}</p>
+            <section key={s.title} className="glass p-4">
+              <div className="relative z-[2] mb-2 inline-flex rounded-full bg-[var(--accent-soft)] px-2.5 py-1">
+                <span className="text-[11px] font-semibold tracking-[0.06em] text-[var(--accent)] uppercase">
+                  {s.title}
+                </span>
+              </div>
+              <p className="relative z-[2] text-sm leading-relaxed text-[var(--secondary)]">{s.body}</p>
               {s.citationIds?.length > 0 && (
-                <button
-                  type="button"
-                  className="mt-3 text-[11px] text-white/45 underline-offset-2 hover:underline"
-                  onClick={() => setOpenCite((o) => ({ ...o, [s.title]: !o[s.title] }))}
-                >
-                  {openCite[s.title] ? "Hide" : "Show"} citations ({s.citationIds.length})
-                </button>
-              )}
-              {openCite[s.title] && (
-                <ul className="mt-2 space-y-2 border-t border-white/10 pt-2">
-                  {s.citationIds.map((id) => {
-                    const c = citeMap[id];
-                    if (!c) return null;
-                    return (
-                      <li key={id} className="text-[11px] leading-relaxed text-white/45">
-                        <span className="text-white/65">
-                          {c.documentTitle} · {c.period}
-                          {c.page != null ? ` · p.${c.page}` : ""}
-                        </span>
-                        <br />“{c.quote}”
-                      </li>
-                    );
-                  })}
-                </ul>
+                <>
+                  <button
+                    type="button"
+                    className="relative z-[2] mt-3 min-h-11 text-left text-xs font-medium text-[var(--accent)]"
+                    onClick={() => setOpenCite((o) => ({ ...o, [s.title]: !o[s.title] }))}
+                  >
+                    {openCite[s.title] ? "Hide" : "Show"} footnotes ({s.citationIds.length})
+                  </button>
+                  <AnimatePresence initial={false}>
+                    {openCite[s.title] && (
+                      <motion.ul
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2, ease: "easeOut" }}
+                        className="relative z-[2] mt-2 space-y-2 overflow-hidden border-l-2 border-[var(--accent)]/40 pl-3"
+                      >
+                        {s.citationIds.map((id) => {
+                          const c = citeMap[id];
+                          if (!c) return null;
+                          return (
+                            <li key={id} className="text-[11px] leading-relaxed text-[var(--muted)]">
+                              <span className="font-medium text-[var(--secondary)]">
+                                {c.documentTitle} · {c.period}
+                                {c.page != null ? ` · p.${c.page}` : ""}
+                              </span>
+                              <br />
+                              <span className="text-[var(--secondary)]">“{c.quote}”</span>
+                            </li>
+                          );
+                        })}
+                      </motion.ul>
+                    )}
+                  </AnimatePresence>
+                </>
               )}
             </section>
           ))}
-        </div>
+        </motion.div>
       )}
 
       {!loading && !result && !error && (
         <Card>
-          <p className="text-sm text-white/55">Try INFY → Promised vs Delivered, or POLYCAB to prove generalization.</p>
+          <p className="relative z-[2] heading text-lg">Start with a name.</p>
+          <p className="relative z-[2] mt-1 text-sm text-[var(--secondary)]">
+            Try INFY → Promised, or POLYCAB to prove it isn’t hard-wired.
+          </p>
         </Card>
       )}
     </div>
+  );
+}
+
+export default function ResearchPage() {
+  return (
+    <Suspense fallback={<SkeletonStack rows={3} />}>
+      <ResearchInner />
+    </Suspense>
   );
 }

@@ -7,10 +7,12 @@
 
 **FINN** — a mobile-first Financial Investment Agent (PWA) with:
 
-- **Push / Feed** — windowed portfolio filing digest (24h / 7d / 30d), materiality-ranked, routine collapsed; results cards with QoQ/YoY mini-tables; management-change cards with bio labeled as external context.
+- **Push / Feed** — windowed portfolio filing digest (24h / 7d / 30d), materiality-ranked, routine collapsed; announcement-first cards with sentiment coloring + category icons; results cards with QoQ/YoY mini-tables; management-change cards with bio labeled as external context.
 - **Push / Alerts** — unusual EOD volume/price moves plus material announcement alerts, with plain-English reasons and thresholds from Settings.
 - **Pull / Research** — three deep modules (Snapshot, Bull vs Bear, **Promised vs Delivered**) grounded only in annual-report + concall chunks, with expandable citations. Works for demo names and arbitrary NSE tickers (e.g. POLYCAB) via ingest.
 - **Settings** — persist `vol_multiple`, `price_pct`, `window_hours`, muted categories to Supabase.
+
+UI is a glass-over-mesh mobile shell (Geist Sans/Mono, dusk palette) — product logic and APIs unchanged.
 
 ## Key trade-offs
 
@@ -38,5 +40,5 @@
 
 - Live app: https://finn-enam-omega.vercel.app  
 - GitHub: https://github.com/Ayush-Gaud/finn-enam  
-- AI build history: this Cursor conversation / export  
-
+- AI build history: Cursor conversation export / share link (attached or linked in the submission email)  
+- Screens (phone viewport): `docs/screens/` in the repo  

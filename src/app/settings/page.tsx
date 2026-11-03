@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 
@@ -49,6 +49,14 @@ export default function SettingsPage() {
       });
   }, []);
 
+  const preview = useMemo(
+    () =>
+      `Would trigger on volume ≥ ${s.vol_multiple.toFixed(1)}× 20d avg, or |Δprice| ≥ ${s.price_pct.toFixed(1)}%, inside ${s.window_hours}h. Muted: ${
+        s.muted_categories.length ? s.muted_categories.join(", ") : "none"
+      }.`,
+    [s],
+  );
+
   async function save() {
     setSaving(true);
     setMsg(null);
@@ -59,8 +67,8 @@ export default function SettingsPage() {
         body: JSON.stringify(s),
       });
       const j = await r.json();
-      if (!r.ok) throw new Error(j.error ?? "Save failed");
-      setMsg("Saved — Alerts will use new thresholds.");
+      if (!r.ok) throw new Error(typeof j.error === "string" ? j.error : "Save failed");
+      setMsg("Saved. Alerts will use the new thresholds.");
     } catch (e) {
       setMsg(e instanceof Error ? e.message : "Error");
     } finally {
@@ -80,13 +88,16 @@ export default function SettingsPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="font-[family-name:var(--font-display)] text-3xl tracking-tight">Settings</h1>
-        <p className="mt-1 text-sm text-white/50">You define unusual. Persist to Supabase.</p>
+        <h2 className="heading text-2xl">Settings</h2>
+        <p className="mt-1 text-sm text-[var(--secondary)]">You define unusual.</p>
       </div>
 
-      <Card className="space-y-4">
-        <label className="block text-xs text-white/50">
-          Volume multiple · {s.vol_multiple.toFixed(1)}×
+      <Card className="space-y-5">
+        <label className="relative z-[2] block">
+          <div className="flex items-center justify-between">
+            <span className="label !text-[var(--secondary)]">Volume multiple</span>
+            <span className="tabular text-sm font-semibold accent-text">{s.vol_multiple.toFixed(1)}×</span>
+          </div>
           <input
             type="range"
             min={1.2}
@@ -94,11 +105,14 @@ export default function SettingsPage() {
             step={0.1}
             value={s.vol_multiple}
             onChange={(e) => setS({ ...s, vol_multiple: Number(e.target.value) })}
-            className="mt-2 w-full accent-[var(--signal)]"
+            className="mt-3 w-full"
           />
         </label>
-        <label className="block text-xs text-white/50">
-          Price move · ±{s.price_pct.toFixed(1)}%
+        <label className="relative z-[2] block">
+          <div className="flex items-center justify-between">
+            <span className="label !text-[var(--secondary)]">Price move</span>
+            <span className="tabular text-sm font-semibold accent-text">±{s.price_pct.toFixed(1)}%</span>
+          </div>
           <input
             type="range"
             min={1}
@@ -106,11 +120,14 @@ export default function SettingsPage() {
             step={0.5}
             value={s.price_pct}
             onChange={(e) => setS({ ...s, price_pct: Number(e.target.value) })}
-            className="mt-2 w-full accent-[var(--signal)]"
+            className="mt-3 w-full"
           />
         </label>
-        <label className="block text-xs text-white/50">
-          Digest / alert window (hours) · {s.window_hours}
+        <label className="relative z-[2] block">
+          <div className="flex items-center justify-between">
+            <span className="label !text-[var(--secondary)]">Window</span>
+            <span className="tabular text-sm font-semibold accent-text">{s.window_hours}h</span>
+          </div>
           <input
             type="range"
             min={24}
@@ -118,14 +135,14 @@ export default function SettingsPage() {
             step={24}
             value={s.window_hours}
             onChange={(e) => setS({ ...s, window_hours: Number(e.target.value) })}
-            className="mt-2 w-full accent-[var(--signal)]"
+            className="mt-3 w-full"
           />
         </label>
       </Card>
 
-      <Card>
-        <p className="text-[10px] uppercase tracking-[0.14em] text-[var(--signal)]">Muted categories</p>
-        <div className="mt-3 flex flex-wrap gap-1.5">
+      <div>
+        <p className="label mb-2">Muted categories</p>
+        <div className="flex flex-wrap gap-2">
           {CATEGORIES.map((c) => {
             const muted = s.muted_categories.includes(c);
             return (
@@ -133,19 +150,28 @@ export default function SettingsPage() {
                 key={c}
                 type="button"
                 onClick={() => toggleMute(c)}
-                className={`rounded-md px-2 py-1 text-xs ${muted ? "bg-rose-400/20 text-rose-100" : "bg-white/8 text-white/70"}`}
+                className={`min-h-11 rounded-full px-3 text-xs font-medium transition duration-200 ${
+                  muted
+                    ? "bg-[var(--down-soft)] text-[var(--down)] shadow-[inset_0_0_0_1px_rgba(244,63,94,0.25)]"
+                    : "glass relative text-[var(--secondary)] hover:text-[var(--text)]"
+                }`}
               >
-                {c}
+                <span className="relative z-[2]">{c}</span>
               </button>
             );
           })}
         </div>
+      </div>
+
+      <Card>
+        <p className="relative z-[2] label accent-text !bg-clip-text">What would trigger now</p>
+        <p className="relative z-[2] mt-2 text-sm leading-relaxed text-[var(--secondary)]">{preview}</p>
       </Card>
 
       <Button className="w-full" onClick={() => void save()} disabled={saving}>
         {saving ? "Saving…" : "Save settings"}
       </Button>
-      {msg && <p className="text-sm text-white/60">{msg}</p>}
+      {msg && <p className="text-sm text-[var(--secondary)]">{msg}</p>}
     </div>
   );
 }
