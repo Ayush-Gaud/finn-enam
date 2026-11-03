@@ -6,8 +6,8 @@ Filter what matters across an NSE/BSE portfolio. Cached-first so the demo always
 
 ## Live demo
 
-- App: _(Vercel URL after deploy)_
-- Repo: _(GitHub URL after push)_
+- App: https://finn-enam-omega.vercel.app
+- Repo: https://github.com/Ayush-Gaud/finn-enam
 
 ## Stack
 

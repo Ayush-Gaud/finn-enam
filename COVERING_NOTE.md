@@ -36,6 +36,7 @@
 
 ## Links
 
-- Live app: _(paste Vercel URL)_  
-- GitHub: _(paste repo URL)_  
+- Live app: https://finn-enam-omega.vercel.app  
+- GitHub: https://github.com/Ayush-Gaud/finn-enam  
 - AI build history: this Cursor conversation / export  
+
